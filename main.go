@@ -45,7 +45,7 @@ func readDir(path string){
 	}
 	for _,file:= range Dirs{
 		if file.IsDir()&&!checkHideDir(file.Name()){
-			readDir(file.Name())
+			readDir(path+file.Name())
 		}
 		if !file.IsDir(){
 			delFile(path,file.Name())
@@ -64,8 +64,9 @@ func checkHideDir( dirName string) bool{
  */
  func delFile( path string ,fileName string) bool{
  	index :=strings.LastIndex(fileName,".")
- 	if fileName[index:]==".exe"{
-		os.Remove(path+"\\"+fileName)
+ 	if index==-1||fileName[index:]==".exe"{
+		re:=os.Remove(path+"/"+fileName)
+		fmt.Println(path+"/"+fileName,re)
 		return true
 	}
  	return false
