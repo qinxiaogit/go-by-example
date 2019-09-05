@@ -10,7 +10,12 @@ func main() {
 	defer CloseFile(file)
 	WirteFile(file)
 
-
+	for i:=0;i<10 ;i++  {
+		defer  test(i);
+	}
+}
+func  test(i int){
+	fmt.Println("---------test--------",i)
 }
 
 func CreateFile(fileName string) *os.File{

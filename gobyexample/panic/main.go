@@ -9,7 +9,7 @@ func main() {
 
 	//panic("this is a problem")
 
-	_,err:= os.Create("/tmp/test.file")
+	_,err:= os.Open("/tmp/test0.file")
 	if err!=nil{
 		panic(err)
 	}
