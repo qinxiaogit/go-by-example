@@ -8,13 +8,13 @@ import (
 )
 
 func main() {
-	var init int64=0
-	for i:=0; i<2;i++  {
+	var init int64 = 0
+	for i := 0; i < 2; i++ {
 		go func() {
-			for   {
+			for {
 				//init++
-				atomic.AddInt64(&init,1)
-				fmt.Println("init：",init)
+				atomic.AddInt64(&init, 1)
+				fmt.Println("init：", init)
 				runtime.Gosched()
 			}
 		}()

@@ -6,43 +6,42 @@ import (
 )
 
 func main() {
-	requests :=make(chan int,10)
+	requests := make(chan int, 10)
 
-	for i:=0;i<10 ;i++  {
-		requests<-i
+	for i := 0; i < 10; i++ {
+		requests <- i
 	}
 
 	close(requests)
-	limiter := time.Tick(time.Millisecond*2000)
+	limiter := time.Tick(time.Millisecond * 2000)
 
-	for req:=range requests  {
+	for req := range requests {
 		<-limiter
-		fmt.Println("request ",req,time.Now())
+		fmt.Println("request ", req, time.Now())
 	}
 
-	burstyLimiter :=make(chan time.Time,3)
+	burstyLimiter := make(chan time.Time, 3)
 
-	for i:=0;i<3 ;i++  {
-		burstyLimiter<-time.Now()
+	for i := 0; i < 3; i++ {
+		burstyLimiter <- time.Now()
 	}
 
 	go func() {
-		for t:= range time.Tick(time.Millisecond*200)  {
+		for t := range time.Tick(time.Millisecond * 200) {
 
-			burstyLimiter<-t
+			burstyLimiter <- t
 		}
 	}()
 
-	burstyRequests:=make(chan int,5)
-	for i:=0;i<5 ;i++  {
-		burstyRequests<-i
-	}
-	
-	close(burstyRequests)
-	for xo:=range burstyRequests{
-		<-burstyLimiter
-		fmt.Println("request：",xo,time.Now())
+	burstyRequests := make(chan int, 5)
+	for i := 0; i < 5; i++ {
+		burstyRequests <- i
 	}
 
+	close(burstyRequests)
+	for xo := range burstyRequests {
+		<-burstyLimiter
+		fmt.Println("request：", xo, time.Now())
+	}
 
 }

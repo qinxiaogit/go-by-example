@@ -1,5 +1,5 @@
 package controller
 
-func StartUp(){
+func StartUp() {
 	home{}.RegisterRoutes()
 }

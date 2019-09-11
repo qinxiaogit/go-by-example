@@ -10,9 +10,9 @@ import (
 func main() {
 	dateCmd := exec.Command("date")
 
-	dateOutput,err:= dateCmd.Output()
+	dateOutput, err := dateCmd.Output()
 
-	if err!=nil{
+	if err != nil {
 		panic(err)
 	}
 	fmt.Println(string(dateOutput))
@@ -20,7 +20,7 @@ func main() {
 	grepCmd := exec.Command("grep", "hello")
 
 	grepIn, _ := grepCmd.StdinPipe()
-	grepOut ,_:= grepCmd.StdoutPipe()
+	grepOut, _ := grepCmd.StdoutPipe()
 	grepCmd.Start()
 	grepIn.Write([]byte("hello grep\ngoodbye grep"))
 

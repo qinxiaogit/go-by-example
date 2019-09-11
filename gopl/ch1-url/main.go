@@ -9,11 +9,11 @@ import (
 	"time"
 )
 
-func main(){
-	start:=time.Now()
-	ch:=make(chan string)
-	for _,url:=range os.Args[1:]{
-		go fetch(url,ch)
+func main() {
+	start := time.Now()
+	ch := make(chan string)
+	for _, url := range os.Args[1:] {
+		go fetch(url, ch)
 		//res,err:=http.Get(url)
 		//if err!=nil{
 		//	panic(err)
@@ -32,14 +32,14 @@ func main(){
 	fmt.Printf("%.2fs elapsed\n", time.Since(start).Seconds())
 }
 
-func fetch(url string,ch chan <-string){
-	start:=time.Now()
-	resp,err:=http.Get(url)
+func fetch(url string, ch chan<- string) {
+	start := time.Now()
+	resp, err := http.Get(url)
 	if err != nil {
 		ch <- fmt.Sprint(err) // send to channel ch
 		return
 	}
-	nbytes,err2:= io.Copy(ioutil.Discard,resp.Body)
+	nbytes, err2 := io.Copy(ioutil.Discard, resp.Body)
 	if err != nil {
 		ch <- fmt.Sprint(err2) // send to channel ch
 		return

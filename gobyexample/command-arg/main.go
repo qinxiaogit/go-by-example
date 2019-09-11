@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	argsWithProg:= os.Args
+	argsWithProg := os.Args
 	argsWithOutProg := os.Args[1:]
 
 	//arg := os.Args[3]
@@ -15,13 +15,13 @@ func main() {
 	fmt.Println(argsWithOutProg)
 	//fmt.Println(arg)
 
-	wordPtr:=flag.String("world","hello","golang")
+	wordPtr := flag.String("world", "hello", "golang")
 
-	numPtr:= flag.Int("numb",10,"an int")
+	numPtr := flag.Int("numb", 10, "an int")
 
 	var svar string
 
-	flag.StringVar(&svar,"svar","bar","a string val")
+	flag.StringVar(&svar, "svar", "bar", "a string val")
 	flag.Parse()
 	fmt.Println("word:", *wordPtr)
 	fmt.Println("numb:", *numPtr)

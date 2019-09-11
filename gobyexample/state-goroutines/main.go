@@ -8,21 +8,21 @@ import (
 )
 
 type readOps struct {
-	 key int
-	 resp chan int
+	key  int
+	resp chan int
 }
 
 type wirteOps struct {
-	key int
-	val int
+	key  int
+	val  int
 	resp chan bool
 }
 
 func main() {
 	var ops int64
 
-	reads :=make(chan *readOps)
-	wirtes:=make(chan *wirteOps)
+	reads := make(chan *readOps)
+	wirtes := make(chan *wirteOps)
 
 	go func() {
 
@@ -39,18 +39,18 @@ func main() {
 
 			}
 		}
-		
+
 	}()
 
-	for r:=100;r>0 ;r--  {
+	for r := 100; r > 0; r-- {
 		go func() {
 
-			for   {
-				read:=&readOps{
-					key:rand.Intn(5),
-					resp:make(chan int),
+			for {
+				read := &readOps{
+					key:  rand.Intn(5),
+					resp: make(chan int),
 				}
-				reads<-read
+				reads <- read
 				<-read.resp
 				atomic.AddInt64(&ops, 1)
 
@@ -59,16 +59,16 @@ func main() {
 		}()
 	}
 
-	for w:=0; w<10;w++  {
+	for w := 0; w < 10; w++ {
 		go func() {
 
-			for  {
-				wirte:=&wirteOps{
-					key:rand.Intn(5),
-					val:rand.Intn(100),
-					resp:make(chan bool),
+			for {
+				wirte := &wirteOps{
+					key:  rand.Intn(5),
+					val:  rand.Intn(100),
+					resp: make(chan bool),
 				}
-				wirtes<-wirte
+				wirtes <- wirte
 				<-wirte.resp
 				atomic.AddInt64(&ops, 1)
 			}
@@ -78,8 +78,7 @@ func main() {
 
 	time.Sleep(time.Second)
 
-	osFinsh:= atomic.LoadInt64(&ops)
+	osFinsh := atomic.LoadInt64(&ops)
 	fmt.Println(osFinsh)
-
 
 }

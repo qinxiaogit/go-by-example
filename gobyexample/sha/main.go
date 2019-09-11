@@ -7,18 +7,18 @@ import (
 )
 
 func main() {
-	s:= "hello golang sha"
-	h:=sha1.New()
+	s := "hello golang sha"
+	h := sha1.New()
 	h.Write([]byte(s))
 
-	bs:= h.Sum(nil)
+	bs := h.Sum(nil)
 	fmt.Println(s)
-	fmt.Printf("%x\n",bs)
+	fmt.Printf("%x\n", bs)
 	//fmt.Printf("%x\n",h)
 
 	data := "abc123!?$*&()'-=@~"
 
-	enBs:=base64.StdEncoding.EncodeToString([]byte(data))
+	enBs := base64.StdEncoding.EncodeToString([]byte(data))
 	fmt.Println(enBs)
 	fmt.Println(base64.StdEncoding.DecodeString(enBs))
 

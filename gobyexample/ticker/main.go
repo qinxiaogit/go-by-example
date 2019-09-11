@@ -6,14 +6,14 @@ import (
 )
 
 func main() {
-	ticker:= time.NewTicker(time.Millisecond*500)
+	ticker := time.NewTicker(time.Millisecond * 500)
 	go func() {
-		for t:=range ticker.C {
-			fmt.Println("Tick at",t)
+		for t := range ticker.C {
+			fmt.Println("Tick at", t)
 		}
 	}()
 
-	time.Sleep(time.Millisecond*50000)
+	time.Sleep(time.Millisecond * 50000)
 	ticker.Stop()
 	fmt.Println("ticker stop")
 }

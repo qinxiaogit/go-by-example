@@ -10,10 +10,10 @@ import (
 )
 
 func main() {
-  var state = make(map[int]int)
-  mutex:=sync.Mutex{}
+	var state = make(map[int]int)
+	mutex := sync.Mutex{}
 	var ops int64 = 0
-	for i:=0;i<100 ;i++  {
+	for i := 0; i < 100; i++ {
 		go func() {
 			for {
 				total := 0
@@ -27,24 +27,24 @@ func main() {
 		}()
 	}
 
-	for w:=0; w<10;w++  {
+	for w := 0; w < 10; w++ {
 		go func() {
-			for   {
-				key:=rand.Intn(100)
-				val:=rand.Intn(100)
+			for {
+				key := rand.Intn(100)
+				val := rand.Intn(100)
 
 				mutex.Lock()
-				state[key]=val
+				state[key] = val
 				mutex.Unlock()
-				atomic.AddInt64(&ops,1)
+				atomic.AddInt64(&ops, 1)
 				runtime.Gosched()
 			}
 		}()
 	}
-	time.Sleep(time.Second*10)
-	opsFinsh:=atomic.LoadInt64(&ops)
-	fmt.Println("finsh：",opsFinsh)
+	time.Sleep(time.Second * 10)
+	opsFinsh := atomic.LoadInt64(&ops)
+	fmt.Println("finsh：", opsFinsh)
 	mutex.Lock()
-	fmt.Println("state：",state)
+	fmt.Println("state：", state)
 	mutex.Unlock()
 }

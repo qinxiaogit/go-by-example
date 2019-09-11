@@ -6,21 +6,21 @@ import (
 	s "strings"
 )
 
-func Index(vs []string,t string)int{
-	for i,v:=range vs {
-		if v==t {
+func Index(vs []string, t string) int {
+	for i, v := range vs {
+		if v == t {
 			return i
 		}
 	}
 	return -1
 }
 
-func Include(vs []string,t string)bool{
-	return Index(vs,t)>=0
+func Include(vs []string, t string) bool {
+	return Index(vs, t) >= 0
 }
 
-func Any(vs []string,callback func(string)bool) bool{
-	for _,v:=range vs{
+func Any(vs []string, callback func(string) bool) bool {
+	for _, v := range vs {
 		if callback(v) {
 			return true
 		}
@@ -28,10 +28,10 @@ func Any(vs []string,callback func(string)bool) bool{
 	return false
 }
 
-func All(vs []string,callback func(string)bool) bool{
+func All(vs []string, callback func(string) bool) bool {
 
-	for _,v:=range vs{
-		if !callback(v){
+	for _, v := range vs {
+		if !callback(v) {
 			return false
 		}
 	}
@@ -43,21 +43,21 @@ func All(vs []string,callback func(string)bool) bool{
 	//return tempStr
 }
 
-func Fiter(vs []string,callback func(string) bool)[]string{
+func Fiter(vs []string, callback func(string) bool) []string {
 
-	var tmpStr [] string
-	for _,v:=range vs {
-		if callback(v){
+	var tmpStr []string
+	for _, v := range vs {
+		if callback(v) {
 			tmpStr = append(tmpStr, v)
 		}
 	}
 	return tmpStr
 }
 
-func Map(vs []string,callback func(string) string)[]string{
+func Map(vs []string, callback func(string) string) []string {
 
-	var tmpStr = make([]string,len(vs))
-	for index,v:=range vs{
+	var tmpStr = make([]string, len(vs))
+	for index, v := range vs {
 		tmpStr[index] = callback(v)
 	}
 	return tmpStr
@@ -70,21 +70,20 @@ var p = fmt.Println
 func main() {
 	var strs = []string{"peach", "apple", "pear", "plum"}
 
-	fmt.Println(Index(strs,"pear"))
-	fmt.Println(Include(strs,"pear"))
+	fmt.Println(Index(strs, "pear"))
+	fmt.Println(Include(strs, "pear"))
 	fmt.Println(All(strs, func(s string) bool {
-		return strings.HasPrefix(s,"p")
+		return strings.HasPrefix(s, "p")
 	}))
 
 	fmt.Println(Any(strs, func(s string) bool {
 		return true
 	}))
-	
+
 	fmt.Println(Fiter(strs, func(s string) bool {
 		return strings.Contains(s, "e")
 	}))
 	fmt.Println(Map(strs, strings.ToUpper))
-
 
 	/************************** string function *****************************/
 	p("Contains:  ", s.Contains("test", "es"))
@@ -100,7 +99,7 @@ func main() {
 	p("ToLower:   ", s.ToLower("TEST"))
 	p("ToUpper:   ", s.ToUpper("test"))
 	p()
-	p("char","hello"[1])
-	p("len",len("len"))
+	p("char", "hello"[1])
+	p("len", len("len"))
 
 }

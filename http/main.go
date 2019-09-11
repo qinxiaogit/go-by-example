@@ -12,7 +12,7 @@ func main() {
 	//ba369c7f737dae89cc274e730c2738c5
 	controller.StartUp()
 	//http.ListenAndServe(":8080",nil)
-	err:=http.ListenAndServeTLS(":443","/Users/owlet/Documents/code/go/http/cert/server.csr",
-		"/Users/owlet/Documents/code/go/ht/cert/server.key",nil)
+	err := http.ListenAndServeTLS(":443", "/Users/owlet/Documents/code/go/http/cert/server.csr",
+		"/Users/owlet/Documents/code/go/ht/cert/server.key", nil)
 	panic(err)
 }

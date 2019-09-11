@@ -2,14 +2,14 @@ package main
 
 import "fmt"
 
-func zeroVal(ivar int){
+func zeroVal(ivar int) {
 	ivar++
 }
-func zerPtr(ivar *int){
+func zerPtr(ivar *int) {
 	*ivar++
 }
-func main(){
-	i:=1
+func main() {
+	i := 1
 	zeroVal(i)
 	fmt.Println(i)
 	zerPtr(&i)

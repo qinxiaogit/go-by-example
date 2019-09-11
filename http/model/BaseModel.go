@@ -1,3 +1,3 @@
 package model
 
-type BaseModel struct {}
+type BaseModel struct{}

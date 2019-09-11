@@ -5,33 +5,32 @@ import (
 	"time"
 )
 
-func main(){
+func main() {
 
-	c1:=make(chan string,1)
+	c1 := make(chan string, 1)
 	go func() {
 		time.Sleep(time.Second)
-		c1<-"hello world"
+		c1 <- "hello world"
 	}()
 
 	select {
-	case res:=<-c1:
+	case res := <-c1:
 		fmt.Println(res)
 	case <-time.After(time.Second):
 		fmt.Println("timeout")
 	}
 
-	c2:=make(chan string,1)
+	c2 := make(chan string, 1)
 	go func() {
-		time.Sleep(time.Second*2)
-		c2<-"go lang"
+		time.Sleep(time.Second * 2)
+		c2 <- "go lang"
 	}()
 
 	select {
-	case res:=<-c2:
+	case res := <-c2:
 		fmt.Println(res)
-	case <-time.After(time.Second*3):
+	case <-time.After(time.Second * 3):
 		fmt.Println("timeout 2")
 	}
-
 
 }

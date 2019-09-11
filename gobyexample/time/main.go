@@ -5,11 +5,11 @@ import (
 	"time"
 )
 
-func main(){
-	now :=time.Now()
+func main() {
+	now := time.Now()
 	fmt.Println(now)
 
-	then:= time.Date(1991,10,20,12,12,10,12,time.UTC)
+	then := time.Date(1991, 10, 20, 12, 12, 10, 12, time.UTC)
 	fmt.Println(then)
 	fmt.Println(then.Year())
 	fmt.Println(then.Month())
@@ -26,6 +26,6 @@ func main(){
 
 	fmt.Println(now.Format(time.RFC3339))
 
-	t1,e:=time.Parse(time.RFC3339,"2012-11-01T22:08:41+00:00")
-	fmt.Println(t1,e)
+	t1, e := time.Parse(time.RFC3339, "2012-11-01T22:08:41+00:00")
+	fmt.Println(t1, e)
 }

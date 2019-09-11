@@ -9,8 +9,8 @@ import (
 func main() {
 	s := "postgres://user:pass@host.com:5432/path?k=v#f"
 
-	u,e:=url.Parse(s)
-	if e!=nil{
+	u, e := url.Parse(s)
+	if e != nil {
 		panic(e)
 	}
 	fmt.Println(u.Scheme)

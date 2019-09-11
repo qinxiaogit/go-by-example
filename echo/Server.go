@@ -1,9 +1,9 @@
 package main
 
 import (
-"net/http"
+	"net/http"
 
-"github.com/labstack/echo"
+	"github.com/labstack/echo"
 )
 
 func main() {

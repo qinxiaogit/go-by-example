@@ -12,8 +12,8 @@ func main() {
 	fmt.Println(rand.Float32())
 	fmt.Println(rand.Float64())
 
-	s1:=rand.NewSource(time.Now().UnixNano())
-	r1:=rand.New(s1)
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
 
 	//fmt.Println(r1.Intn(100))
 	fmt.Print(r1.Intn(100), "@")

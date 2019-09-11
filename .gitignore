@@ -15,3 +15,5 @@
 src/
 pkg/
 echo/*.exe
+blog/vendor/
+blog/runtime/

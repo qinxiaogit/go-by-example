@@ -8,20 +8,20 @@ import (
 )
 
 type readOp struct {
-	key int
+	key  int
 	resp chan int
 }
 
 type writeOp struct {
-	key int
-	val int
+	key  int
+	val  int
 	resp chan bool
 }
 
-func main(){
+func main() {
 	var ops int64
 	reads := make(chan *readOp)
-	writes:= make(chan *writeOp)
+	writes := make(chan *writeOp)
 
 	go func() {
 		state := make(map[int]int)
@@ -36,36 +36,36 @@ func main(){
 		}
 	}()
 
-	for i:=0;i<100 ;i++  {
-		go func() {
-			for{
-				read:= &readOp{
-					key:rand.Intn(5),
-					resp:make(chan int),
-				}
-				reads<-read
-				<-read.resp
-				atomic.AddInt64(&ops,1)
-			}
-		}()
-	}
-
-	for w:=0;w<10;w++ {
+	for i := 0; i < 100; i++ {
 		go func() {
 			for {
-				write:=&writeOp{
-					key:rand.Intn(5),
-					val:rand.Intn(1000),
-					resp:make(chan bool),
+				read := &readOp{
+					key:  rand.Intn(5),
+					resp: make(chan int),
 				}
-				writes<-write
-				<-write.resp
-				atomic.AddInt64(&ops,1)
+				reads <- read
+				<-read.resp
+				atomic.AddInt64(&ops, 1)
 			}
 		}()
 	}
 
-	time.Sleep(time.Second*1)
-	opsFinish:=atomic.LoadInt64(&ops)
+	for w := 0; w < 10; w++ {
+		go func() {
+			for {
+				write := &writeOp{
+					key:  rand.Intn(5),
+					val:  rand.Intn(1000),
+					resp: make(chan bool),
+				}
+				writes <- write
+				<-write.resp
+				atomic.AddInt64(&ops, 1)
+			}
+		}()
+	}
+
+	time.Sleep(time.Second * 1)
+	opsFinish := atomic.LoadInt64(&ops)
 	fmt.Println(opsFinish)
 }

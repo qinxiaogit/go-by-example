@@ -7,15 +7,15 @@ import (
 	"syscall"
 )
 
-func main(){
-	sign:= make(chan os.Signal)
-	done:= make(chan bool)
-	signal.Notify(sign,syscall.SIGINT,syscall.SIGTERM)
+func main() {
+	sign := make(chan os.Signal)
+	done := make(chan bool)
+	signal.Notify(sign, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		sig:=<-sign
+		sig := <-sign
 		fmt.Println(sig)
-		done<-true
+		done <- true
 	}()
 	fmt.Println("awaiting signal")
 	<-done

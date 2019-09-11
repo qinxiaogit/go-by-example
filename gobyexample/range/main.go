@@ -19,8 +19,8 @@ func main() {
 	}
 	kvs := map[string]string{"a": "apple", "b": "banana"}
 
-	fmt.Println(kvs,"\n",strstr,kvs["a"])
-	for _,k:=range kvs["a"]{
-		fmt.Printf("%x\n",k)
+	fmt.Println(kvs, "\n", strstr, kvs["a"])
+	for _, k := range kvs["a"] {
+		fmt.Printf("%x\n", k)
 	}
 }
