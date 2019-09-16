@@ -1,33 +1,33 @@
 package routers
 
 import (
+	"blog/middleware/cors"
 	"blog/pkg/setting"
 	"blog/routers/api"
 	v1 "blog/routers/api/v1"
 	"github.com/gin-gonic/gin"
-	"blog/middleware/jwt"
-	"net/http"
 )
 
 func InitRouter()*gin.Engine{
 	r:=gin.New()
-	r.LoadHTMLGlob("views/**/*")
+	//r.LoadHTMLGlob("views/**/*")
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
 	gin.SetMode(setting.RunModel)
 	r.GET("/auth",api.GetAuth)
 
-	r.GET("/test", func(c *gin.Context) {
-		//c.JSON(200,gin.H{
-		//	"php":"echp 'hello world'",
-		//})
-		c.HTML(http.StatusOK,"index.tmpl",gin.H{
-			"title":"main website",
-		})
-	})
+	//r.GET("/test", func(c *gin.Context) {
+	//	//c.JSON(200,gin.H{
+	//	//	"php":"echp 'hello world'",
+	//	//})
+	//	c.HTML(http.StatusOK,"index.tmpl",gin.H{
+	//		"title":"main website",
+	//	})
+	//})
 	apiV1 := r.Group("/api/v1")
-	apiV1.Use(jwt.JWT())
+	apiV1.Use(cors.Cors())
+	//apiV1.Use(jwt.JWT())
 	{
 		apiV1.GET("/tags", v1.GetTags)
 		apiV1.POST("/tags", v1.AddTag)
@@ -45,6 +45,7 @@ func InitRouter()*gin.Engine{
 		//删除指定文章
 		apiV1.DELETE("/articles/:id", v1.DeleteArticle)
 	}
+
 
 	return r
 }
