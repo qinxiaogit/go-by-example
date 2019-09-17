@@ -4,7 +4,7 @@
         $('#admin-fullscreen').on('click', function() {
             $.AMUI.fullscreen.toggle();
         });
-        axios.defaults.baseURL = 'http://127.0.0.1:8000'
+        axios.defaults.baseURL = 'https://api.owletmiao.cn'
         axios.get('/api/v1/articles/'+getQueryString("article_id")).then(function (response) {
             let code = response.data.code
             console.log(response.data)
