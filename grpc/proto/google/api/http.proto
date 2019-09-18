@@ -1,0 +1,40 @@
+
+syntax = "proto3";
+
+package googel_api;
+
+option cc_enable_arenas = true;
+option java_multiple_files = true;
+option java_outer_classname = "HttpProto";
+option java_package = "comm.google.api";
+
+message Http{
+    repeated HttpRule rules = 1;
+}
+
+message HttpRule{
+    string selector = 1;
+
+    oneof pattern{
+        string get   =2;
+        string put   =3;
+        string post  =4;
+        string delete=5;
+        string patch =6;
+
+        CustomHttpPattern  custom =8;
+    }
+
+    string body =7;
+
+    repeated HttpRule additional_bindings = 11;
+}
+
+// A custom pattern is used for defining custom HTTP verb.
+message CustomHttpPattern {
+    // The name of this custom HTTP verb.
+    string kind = 1;
+
+    // The path matched by this custom verb.
+    string path = 2;
+}
