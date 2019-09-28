@@ -46,7 +46,7 @@ type Config struct {
 }
 
 var cfg *Config
-var configFile = "../config/config.json"
+var configFile = "../../config/config.json"
 
 func getCurrentDirectory() string {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))

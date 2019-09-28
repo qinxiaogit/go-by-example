@@ -1,7 +1,11 @@
 package internal
 
 import (
+	"fmt"
 	"github.com/gomodule/redigo/redis"
+	"github.com/qinxiaogit/go-by-example/spider/config"
+	"strconv"
+	"time"
 )
 
 /**
@@ -9,8 +13,7 @@ useage:
 RedisCliPool()
 */
 var cliPool *redis.Pool
-//NewRdisCliPool
-type NewRedisCliPool(maxIdle, maxActive, idleTimeOut int, host string, port int) *redis.Pool {
+func NewRedisCliPool(maxIdle , maxActive , idleTimeOut int, host string, port int) *redis.Pool {
 	return &redis.Pool{
 		MaxIdle: maxIdle,
 		MaxActive:maxActive,
@@ -21,14 +24,13 @@ type NewRedisCliPool(maxIdle, maxActive, idleTimeOut int, host string, port int)
 				return nil,err
 			}
 			return c,nil
-		}
-
+		},
 	}	
 }
 //
 func RedisCliPool()*redis.Pool{
 	if cliPool!=nil{
-		return clicliPool
+		return cliPool
 	}
 	return NewRedisCliPool(10,100,20,config.GetConfig().Redis.Host,config.GetConfig().Redis.Port)
 }
