@@ -142,4 +142,5 @@ func (c *Client) Upload(src []byte, dest string) error {
 			return fmt.Errorf("Exception: %s, Message: %s", error.Exception, error.Message)
 		}
 	}
+	return nil
 }
