@@ -1,6 +1,7 @@
 package cloud
 
 import (
+	"bytes"
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
@@ -60,7 +61,7 @@ func (c *Client) sendRequest(request, path string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Printf("Error during XML Unmarshal for response %s. The error was %s", body, err)
 	if len(body) > 0 {
 		error := Error{}
 		err = xml.Unmarshal(body, &error)
@@ -112,14 +113,15 @@ func (c *Client) Download(path string) ([]byte, error) {
 	return body, nil
 }
 
+//Upload upload
 func (c *Client) Upload(src []byte, dest string) error {
-	destUrl, err := url.Parse(dest)
+	destURL, err := url.Parse(dest)
 	if err != nil {
 		return err
 	}
 	//create the https request
 	client := http.Client{}
-	req, err := http.NewRequest("PUT", c.URL.ResolveReference(destUrl).String(), nil)
+	req, err := http.NewRequest("PUT", c.URL.ResolveReference(destURL).String(), bytes.NewReader(src))
 	if err != nil {
 		return err
 	}

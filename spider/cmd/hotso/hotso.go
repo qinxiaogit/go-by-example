@@ -109,7 +109,9 @@ func (s *Spider) OnZhiHu() []map[string]interface{} {
 		} else {
 			json.Unmarshal(body, &zhihu)
 		}
+
 	}
+
 	if success != true {
 		return allData
 	}
@@ -118,7 +120,7 @@ func (s *Spider) OnZhiHu() []map[string]interface{} {
 	c.OnRequest(func(r *colly.Request) {
 		r.Headers.Set("cookie", zhihu.Cookie)
 	})
-	c.OnHTML("#TopstoryContent > div > div > div.HotList-list", func(e *colly.HTMLElement) {
+	c.OnHTML("body", func(e *colly.HTMLElement) {
 		e.ForEach("div.HotList-list > section.HotItem", func(i int, ex *colly.HTMLElement) {
 			top := ex.ChildText("div.HotItem-index > div.HotItem-rank")
 			title := ex.ChildText("div.HotItem-content > a > h2.HotItem-title")
@@ -145,11 +147,21 @@ func (s *Spider) OnZhiHu() []map[string]interface{} {
 			allData = append(allData, map[string]interface{}{"top": top, "title": title, "reading": reading, "url": url, "state": state})
 		})
 	})
+	c.OnError(func(response *colly.Response, e error) {
+		fmt.Println(e)
+	})
+	var r *colly.Response
+	c.OnResponse(func(response *colly.Response) {
+		r = response
+		fmt.Printf("%d\n", r.StatusCode)
+		fmt.Printf("aaa%s\n", r.Body)
+	})
+	_ = r
 	c.Visit("http://www.zhihu.com/hot")
-
 	return allData
 }
 
+//ProduceData ...
 func ProduceData(s *Spider) {
 	defer wg.Done()
 	reflectValue := reflect.ValueOf(s)

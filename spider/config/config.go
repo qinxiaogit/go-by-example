@@ -19,7 +19,7 @@ type WebDav struct {
 	Host      string   `json:"host"`
 	User      string   `json:"user"`
 	Password  string   `json:"password"`
-	DataPath  string   `json:"date_path"`
+	DataPath  string   `json:"data_path"`
 	Files     []string `json:"files"`
 	RemoteDir string   `json:"remote_dir"`
 }
