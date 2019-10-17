@@ -17,7 +17,7 @@ const GROUP_OFFLINE_DEFAULT_LIMIT = 0
 const OFFLINE_DEFAULT_HARD_LIMIT = 0
 
 type StorageConfig struct {
-	rpc_list            string
+	rpc_listen            string
 	storage_root        string
 	kefu_appid          int64
 	http_listen_address string
@@ -79,7 +79,7 @@ func read_storage_cfg(cfg_path string) *StorageConfig {
 	if err != nil {
 		log.Fatal(err)
 	}
-	config.rpc_list = get_string(app_cfg, "rpc_listen")
+	config.rpc_listen = get_string(app_cfg, "rpc_listen")
 	config.http_listen_address = get_opt_string(app_cfg, "http_listen_address")
 	config.storage_root = get_string(app_cfg,"storage_root")
 	config.kefu_appid = get_int(app_cfg,"kefu_appid")
