@@ -18,6 +18,7 @@ var (
 
 var server_summary *ServerSummary
 var config *StorageConfig
+var master *Master
 
 func init(){
 	server_summary = NewServerSummary()

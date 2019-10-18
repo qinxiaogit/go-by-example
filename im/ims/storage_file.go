@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -50,10 +51,22 @@ func NewStorageFile(root string)*StorageFile{
 	for _,f := range files{
 		base := filepath.Base(f)
 		if strings.HasPrefix(base,"message_"){
-			if chec
+			if checkFile(f){
+				log.Fatal("check file failure")
+			}else {
+				log.Infof("check file pass:%s",f)
+			}
+			b,err:= strconv.ParseInt(base[8:],10,64)
+			if err!= nil{
+				log.Fatal("invalid message file:",f)
+			}
+			if int(b)>block_NO{
+				block_NO = int(b)
+			}
 		}
 	}
-
+	storage.openWriteFile(block_NO)
+	return storage
 }
 
 func checkFile(file_path string )bool{
@@ -106,8 +119,36 @@ func (storage *StorageFile)openWriteFile(block_NO int){
 		file_size = 0
 	}
 	if file_size == 0{
-		storage.W
+		storage.WriteHeader(file)
 	}
+	storage.file = file
+	storage.block_NO = block_NO
+	storage.dirty = false
+}
+// read file head
+func (storage *Storage)openReadFile(block_NO int)*os.File{
+	//open file readonly mode
+	path := fmt.Sprintf("%s/message_%d", storage.root, block_NO)
+	log.Info("open message block file path:",path)
+	file,err:= os.Open(path)
+	if err!=nil{
+		if os.IsNotExist(err){
+			log.Infof("message block file:%s nonexist", path)
+			return nil
+		} else {
+			log.Fatal(err)
+		}
+	}
+	file_size,err := file.Seek(0,os.SEEK_END)
+	if err!=nil{
+		log.Fatal("seek file")
+	}
+	if file_size<HEADER_SIZE&&file_size>0{
+		if err != nil {
+			log.Fatal("file header is't complete")
+		}
+	}
+	return file
 }
 // 写文件头信息
 func (storage *StorageFile)WriteHeader(file *os.File){
@@ -143,7 +184,105 @@ func (Storage *StorageFile)ReadHeader(file *os.File)(magic int,version int){
 	return
 }
 
-//写消息数据
-func (storage *StorageFile)WriteMessage(file io.Writer , msg *Message){
 
+func (storage *StorageFile) getMsgId(block_NO int, offset int) int64 {
+	return int64(block_NO)*BLOCK_SIZE + int64(offset)
+}
+
+func (storage *StorageFile) getBlockNO(msg_id int64) int {
+	return int(msg_id/BLOCK_SIZE)
+}
+
+func (storage *StorageFile) getBlockOffset(msg_id int64) int {
+	return int(msg_id%BLOCK_SIZE)
+}
+
+func (storage *StorageFile) getFile(block_NO int) *os.File {
+	v, ok := storage.files.Get(block_NO)
+	if ok {
+		return v.(*os.File)
+	}
+	file := storage.openReadFile(block_NO)
+	if file == nil {
+		return nil
+	}
+
+	storage.files.Add(block_NO, file)
+	return file
+}
+
+//写消息数据
+func (storage *StorageFile)WriteMessage(file io.Writer , msg *lru.Message){
+	buffer := new(bytes.Buffer)
+	binary.Write(buffer,binary.BigEndian,int32(MAGIC))
+	lru.WriteMessage(buffer,msg)
+	binary.Write(buffer,binary.BigEndian,int32(MAGIC))
+	buf := buffer.Bytes()
+	n,err := file.Write(buf)
+	if err!=nil{
+		log.Fatal("file write err:",err)
+	}
+	if n!=len(buf){
+		log.Fatal("file write size",len(buf)," nwrite ",n)
+	}
+}
+//save without lock
+func (storage *StorageFile)saveMessage(msg *lru.Message) int64{
+	msgid,err := storage.file.Seek(0,os.SEEK_END)
+	if err!=nil{
+		log.Fatalln(err)
+	}
+	buffer := new(bytes.Buffer)
+	binary.Write(buffer,binary.BigEndian,int32(MAGIC))
+	lru.WriteMessage(buffer,msg)
+	binary.Write(buffer,binary.BigEndian,int32(MAGIC))
+	buf := buffer.Bytes()
+
+	if msgid+int64(len(buf)) > BLOCK_SIZE{
+		err = storage.file.Sync()
+		if err!=nil{
+			log.Fatalln("sync storage file")
+		}
+		storage.file.Close()
+		storage.openWriteFile(storage.block_NO+1)
+		msgid,err = storage.file.Seek(0,os.SEEK_END)
+		if err!=nil{
+			log.Fatalln(err)
+		}
+	}
+	if msgid+int64(len(buf))>BLOCK_SIZE{
+		log.Fatalln("message size:",len(buf))
+	}
+	n ,err := storage.file.Write(buf)
+	if err!=nil{
+		log.Fatal("file write err:" ,err)
+	}
+	if n!=len(buf){
+		log.Fatal("file write size:",len(buf)," nwrite:",n)
+	}
+	storage.dirty =true
+
+	msgid = int64(storage.block_NO)*BLOCK_SIZE+msgid
+	master.ewt <- &lru.EMessage{Msgid:msgid,Msg:msg}
+	//log.Info("save message:", Command(msg.cmd), " ", msgid)
+	return msgid
+}
+
+func (storage *StorageFile) SaveMessage(msg *lru.Message)int64{
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+	return storage.saveMessage(msg)
+}
+
+func (storage *StorageFile)Flush(){
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+	if storage.file != nil && storage.dirty{
+		err := storage.file.Sync()
+		if err!=nil{
+			log.Fatal("sync err:",err)
+		}
+		storage.dirty = false
+		log.Info("sync storage file success")
+	}
 }
