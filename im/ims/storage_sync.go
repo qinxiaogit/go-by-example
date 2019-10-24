@@ -30,7 +30,7 @@ func (client *SyncClient)RunLoop(){
 	}
 	cursor := msg.Body.(*lru.SyncCursor)
 	log.Info("cursor msgid:",cursor.Msgid)
-	c := StorageFile{}
+	c := storage.
 }
 
 

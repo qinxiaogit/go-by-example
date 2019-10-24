@@ -194,8 +194,8 @@ type IVersionMessage interface {
 type Message struct {
 	Cmd int
 	seq int
-	version int
-	flag int
+	Version int
+	Flag int
 
 	Body interface{}
 	meta *Metadata // non searialize
@@ -207,13 +207,13 @@ func (message *Message)ToData()[]byte{
 			return m.ToData()
 		}
 		if m,ok := message.Body.(IVersionMessage);ok{
-			return m.ToData(message.version)
+			return m.ToData(message.Version)
 		}
 	}
 	return nil
 }
 func (message *Message)FromData(buff []byte)bool{
-	cmd := message.cmd
+	cmd := message.Cmd
 	if creator,ok := message_creators[cmd];ok{
 		c:= creator()
 		r:= c.FromData(buff)
@@ -222,7 +222,7 @@ func (message *Message)FromData(buff []byte)bool{
 	}
 	if creator,ok := vmessage_creators[cmd];ok{
 		c := creator()
-		r := c.FromData(message.version,buff)
+		r := c.FromData(message.Version,buff)
 		message.Body = c
 		return r
 	}
@@ -332,19 +332,19 @@ func (rt *RTMessage)FromData(buff []byte)bool{
 }
 
 type IMMessage struct {
-	sender int64
-	receiver int64
-	timestamp int32
-	msgid	  int32
-	content   string
+	Sender int64
+	Receiver int64
+	Timestamp int32
+	Msgid	  int32
+	Content   string
 }
 
 func (message *IMMessage)ToDataV0()[]byte{
 	buffer := new(bytes.Buffer)
-	binary.Write(buffer,binary.BigEndian,message.sender)
-	binary.Write(buffer,binary.BigEndian,message.receiver)
-	binary.Write(buffer,binary.BigEndian,message.msgid)
-	buffer.Write([]byte(message.content))
+	binary.Write(buffer,binary.BigEndian,message.Sender)
+	binary.Write(buffer,binary.BigEndian,message.Receiver)
+	binary.Write(buffer,binary.BigEndian,message.Msgid)
+	buffer.Write([]byte(message.Content))
 	buf := buffer.Bytes()
 	return buf
 }
@@ -354,20 +354,20 @@ func (im *IMMessage)FromDataV0(buff []byte)bool{
 		return false
 	}
 	buffer := bytes.NewBuffer(buff)
-	binary.Read(buffer,binary.BigEndian,&im.sender)
-	binary.Read(buffer,binary.BigEndian,&im.receiver)
-	binary.Read(buffer,binary.BigEndian,&im.msgid)
-	im.content = string(buff[20:])
+	binary.Read(buffer,binary.BigEndian,&im.Sender)
+	binary.Read(buffer,binary.BigEndian,&im.Receiver)
+	binary.Read(buffer,binary.BigEndian,&im.Msgid)
+	im.Content = string(buff[20:])
 	return true
 }
 
 func (message *IMMessage) ToDataV1() []byte {
 	buffer := new(bytes.Buffer)
-	binary.Write(buffer, binary.BigEndian, message.sender)
-	binary.Write(buffer, binary.BigEndian, message.receiver)
-	binary.Write(buffer, binary.BigEndian, message.timestamp)
-	binary.Write(buffer, binary.BigEndian, message.msgid)
-	buffer.Write([]byte(message.content))
+	binary.Write(buffer, binary.BigEndian, message.Sender)
+	binary.Write(buffer, binary.BigEndian, message.Receiver)
+	binary.Write(buffer, binary.BigEndian, message.Timestamp)
+	binary.Write(buffer, binary.BigEndian, message.Msgid)
+	buffer.Write([]byte(message.Content))
 	buf := buffer.Bytes()
 	return buf
 }
@@ -377,11 +377,11 @@ func (im *IMMessage) FromDataV1(buff []byte) bool {
 		return false
 	}
 	buffer := bytes.NewBuffer(buff)
-	binary.Read(buffer, binary.BigEndian, &im.sender)
-	binary.Read(buffer, binary.BigEndian, &im.receiver)
-	binary.Read(buffer, binary.BigEndian, &im.timestamp)
-	binary.Read(buffer, binary.BigEndian, &im.msgid)
-	im.content = string(buff[24:])
+	binary.Read(buffer, binary.BigEndian, &im.Sender)
+	binary.Read(buffer, binary.BigEndian, &im.Receiver)
+	binary.Read(buffer, binary.BigEndian, &im.Timestamp)
+	binary.Read(buffer, binary.BigEndian, &im.Msgid)
+	im.Content = string(buff[24:])
 	return true
 }
 
@@ -467,7 +467,7 @@ type CustomerMessage struct {
 
 func (cs *CustomerMessage) ToData() []byte {
 	buffer := new(bytes.Buffer)
-	binary.Write(buffer, binary.BigEndian, cs.customer_appid)
+	binary.Write(buffer, binary.BigEndian, cs.customer_app_id)
 	binary.Write(buffer, binary.BigEndian, cs.customer_id)
 	binary.Write(buffer, binary.BigEndian, cs.store_id)
 	binary.Write(buffer, binary.BigEndian, cs.seller_id)
@@ -482,7 +482,7 @@ func (cs *CustomerMessage) FromData(buff []byte) bool {
 		return false
 	}
 	buffer := bytes.NewBuffer(buff)
-	binary.Read(buffer, binary.BigEndian, &cs.customer_appid)
+	binary.Read(buffer, binary.BigEndian, &cs.customer_app_id)
 	binary.Read(buffer, binary.BigEndian, &cs.customer_id)
 	binary.Read(buffer, binary.BigEndian, &cs.store_id)
 	binary.Read(buffer, binary.BigEndian, &cs.seller_id)

@@ -286,3 +286,46 @@ func (storage *StorageFile)Flush(){
 		log.Info("sync storage file success")
 	}
 }
+
+func (storage StorageFile)LoadMessage(msg_id int64)*lru.Message{
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+	block_OK := storage.getBlockNO(msg_id)
+	offset := storage.getBlockOffset(msg_id)
+
+	file := storage.getFile(block_OK)
+	if file == nil{
+		log.Warning("can't get file object")
+		return nil
+	}
+	_,err:= file.Seek(int64(offset),os.SEEK_SET)
+	if err!= nil{
+		log.Warning("seek file")
+		return nil
+	}
+	return storage.ReadMessage(file)
+}
+
+func (storage *StorageFile)ReadMessage(file *os.File)*lru.Message{
+	//校验消息起始位置的magic
+	var magic int64
+	err := binary.Read(file,binary.BigEndian,&magic)
+	if err != nil{
+		log.Info("read file err:",err)
+		return nil
+	}
+	msg := lru.ReceiveMessage(file)
+	if msg == nil{
+		return msg
+	}
+	err = binary.Read(file,binary.BigEndian,&magic)
+	if err!= nil{
+		log.Info("read file err:",err)
+		return nil
+	}
+	if magic!= MAGIC{
+		log.Warning("magic err :",magic)
+		return nil
+	}
+	return msg
+}

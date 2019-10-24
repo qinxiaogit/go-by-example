@@ -93,10 +93,10 @@ func ReceiveLimitMessage(conn io.Reader,limit_size int,external bool)*Message{
 	}
 
 	message := new(Message)
-	message.cmd = cmd
+	message.Cmd = cmd
 	message.seq = seq
-	message.version = version
-	message.flag = flag
+	message.Version = version
+	message.Flag = flag
 	if !message.FromData(buff){
 		log.Warning("parse error:%d %d %d %d %s",cmd,seq,version,flag,
 			hex.EncodeToString(buff))
