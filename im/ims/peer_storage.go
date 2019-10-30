@@ -1,9 +1,15 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
+	"fmt"
 	"github.com/qinxiaogit/go-by-example/im/lru"
 	log "github.com/golang/glog"
-	)
+	"io"
+	"os"
+	"time"
+)
 const BATCH_SIZE = 1000
 const PEER_INDEX_FILE_NAM = "peer_index.v3"
 
@@ -336,4 +342,216 @@ func (storage *PeerStorage)LoadLatestMessages(appid int64, receiver int64, limit
 		last_id = off.Prev_msgid
 	}
 	return messages
+}
+//
+func (storage *PeerStorage)ReadPeerIndex()bool{
+	path := fmt.Sprintf("%s/%s", storage.root, PEER_INDEX_FILE_NAM)
+	log.Info("read message index path:", path)
+	file,err := os.Open(path)
+	if err!=nil{
+		if !os.IsNotExist(err){
+			log.Fatal("open file:",err)
+		}
+		return false
+	}
+	defer file.Close()
+	const  INDEX_SIZE  =  56
+	data := make([]byte,INDEX_SIZE*1000)
+	for   {
+		n,err := file.Read(data)
+		if err!= nil{
+			if err != io.EOF{
+				log.Fatal("read err:",err)
+			}
+			break
+		}
+		n = n-n%INDEX_SIZE
+		buffer := bytes.NewBuffer(data[:n])
+		var last_msgid int64
+		var last_id int64
+		var peer_msgid int64
+		var batch_id int64
+		var seq_id int64
+
+		for i:=0 ;i<n/INDEX_SIZE;i++ {
+			id := UserID{}
+			binary.Read(buffer,binary.BigEndian,&id.appid)
+			binary.Read(buffer,binary.BigEndian,&id.uid)
+			binary.Read(buffer,binary.BigEndian,&last_id)
+			binary.Read(buffer,binary.BigEndian,&peer_msgid)
+			binary.Read(buffer,binary.BigEndian,&batch_id)
+			binary.Read(buffer,binary.BigEndian,&seq_id)
+			ui := &UserIndex{last_msgid,last_id,peer_msgid,batch_id,seq_id}
+			storage.setPeerIndex(id.appid,id.uid,ui)
+		}
+	}
+	return true
+}
+
+func (storage *PeerStorage)clonePeerIndex()map[UserID]*UserIndex{
+	message_index := make(map[UserID]*UserIndex)
+	for  k,v := range storage.message_index{
+		message_index[k] = v
+	}
+	return message_index
+}
+//appid uid msgid = 24字节
+func (storage *PeerStorage)savePeerIndex(message_index map[UserID]*UserIndex){
+	path := fmt.Sprintf("%s/peer_index_t",storage.root)
+	log.Info("write peer message index path:",path)
+	begin := time.Now().UnixNano()
+	log.Info("flush peer index begin :",begin)
+	file,err := os.OpenFile(path,os.O_RDWR|os.O_APPEND|os.O_CREATE|os.O_TRUNC, 0644)
+	if err!=nil{
+		log.Fatal("open file:",err)
+	}
+	defer file.Close()
+	buffer := new(bytes.Buffer)
+	index := 0
+	for id,value:= range message_index{
+		binary.Write(buffer,binary.BigEndian,id.appid)
+		binary.Write(buffer,binary.BigEndian,id.uid)
+		binary.Write(buffer,binary.BigEndian,value.last_msgid)
+		binary.Write(buffer, binary.BigEndian, value.last_id)
+		binary.Write(buffer, binary.BigEndian, value.last_peer_id)
+		binary.Write(buffer, binary.BigEndian, value.last_batch_id)
+		binary.Write(buffer, binary.BigEndian, value.last_seq_id)
+		index += 1
+		//batch write to file
+		if index %1000 == 0{
+			buf := buffer.Bytes()
+			n,err := file.Write(buf)
+			if err!=nil{
+				log.Fatal("wirte file:",err)
+			}
+			if n!= len(buf){
+				log.Fatal("can't write file :",len(buf),n)
+			}
+			buffer.Reset()
+		}
+	}
+	buf:= buffer.Bytes()
+	n,err := file.Write(buf)
+	if err!=nil{
+		log.Fatal("write file:",err)
+	}
+	if n!= len(buf){
+		log.Fatal("can't write file:",len(buf),n)
+	}
+	err = file.Sync()
+	if err!= nil{
+		log.Info("sync file err:",err)
+	}
+	path2 := fmt.Sprintf("%s/%s",storage.root,PEER_INDEX_FILE_NAM)
+	err = os.Rename(path,path2)
+	if err!= nil{
+		log.Fatal("rename peer index file err:",err)
+	}
+	end := time.Now().UnixNano()
+	log.Info("flush peer index end :",end," used:",end-begin)
+}
+
+func (storage *PeerStorage)createPeerIndex(){
+	log.Info("create message index begin:",time.Now().UnixNano())
+	for i:=0; i<= storage.block_NO ;i++{
+		file := storage.openReadFile(i)
+		if file == nil{//历史消息被删除
+			continue
+		}
+		_,err := file.Seek(HEADER_SIZE, os.SEEK_SET)
+		if err != nil{
+			log.Warning("seek file err:",err)
+			break
+		}
+		for  {
+			msgid,err := file.Seek(0,os.SEEK_CUR)
+			if err != nil {
+				log.Info("seek file err:", err)
+				break
+			}
+			msg := storage.ReadMessage(file)
+			if msg == nil{
+				break
+			}
+			block_NO := i
+			msgid = int64(block_NO)*BLOCK_SIZE+msgid
+			storage.execMessage(msg,msgid)
+		}
+		file.Close()
+	}
+	log.Info("create message index end:", storage.last_id, time.Now().UnixNano())
+}
+
+func (storage *PeerStorage)RepairPeerIndex(){
+	log.Info("repair message index begin:", storage.last_id, time.Now().UnixNano())
+	first := storage.getBlockNO(storage.last_id)
+	off   := storage.getBlockOffset(storage.last_id)
+
+	for i:= first;i<= storage.block_NO;i++{
+		file := storage.openReadFile(i)
+		if file == nil{//历史消息被删除
+			continue
+		}
+		offset := HEADER_SIZE
+		if i == first{
+			offset = off
+		}
+		_,err := file.Seek(int64(offset),os.SEEK_SET)
+		if err!=nil{
+			log.Warning("seek file err:", err)
+			file.Close()
+			break
+		}
+		for{
+			msgid,err := file.Seek(0,os.SEEK_CUR)
+			if err!= nil{
+				log.Info("seek file err:",err)
+				break
+			}
+			msg := storage.ReadMessage(file)
+			if msg == nil{
+				break
+			}
+			block_NO := i
+			msgid = int64(block_NO)*BLOCK_SIZE+msgid
+			if msgid == storage.last_id{
+				continue
+			}
+			storage.execMessage(msg,msgid)
+		}
+		file.Close()
+	}
+	log.Info("repair message index end:", storage.last_id, time.Now().UnixNano())
+}
+
+func (storage *PeerStorage)execMessage(msg *lru.Message,msgid int64){
+	if msg.Cmd == lru.MSG_OFFLINE{
+		off := msg.Body.(lru.IOfflineMessage).Body()
+		ui  := &UserIndex{off.Msgid,msgid,msgid,0,0}
+		storage.setPeerIndex(off.Appid,off.Receiver,ui)
+	}else if msg.Cmd == lru.MSG_OFFLINE_V2{
+		off := msg.Body.(lru.IOfflineMessage).Body()
+		last_peer_id := msgid
+		if ((msg.Flag&lru.MESSAGE_FLAG_GROUP)!=0){
+			_,last_peer_id = storage.getLastMessageId(off.Appid,off.Receiver)
+		}
+		ui := &UserIndex{off.Msgid,msgid,last_peer_id,0,0}
+		storage.setPeerIndex(off.Appid,off.Receiver,ui)
+	}else if msg.Cmd == lru.MSG_OFFLINE_V3 || msg.Cmd == lru.MSG_OFFLINE_V4{
+		off := msg.Body.(lru.IOfflineMessage).Body()
+		last_peer_id := msgid
+
+		index := storage.getPeerIndex(off.Appid, off.Receiver)
+		if ((msg.Flag & lru.MESSAGE_FLAG_GROUP) != 0) {
+			last_peer_id = index.last_peer_id
+		}
+		last_batch_id := index.last_batch_id
+		last_seq_id := index.last_seq_id + 1
+		if last_seq_id%BATCH_SIZE == 0 {
+			last_batch_id = msgid
+		}
+
+		ui := &UserIndex{off.Msgid, msgid, last_peer_id, last_batch_id, last_seq_id}
+		storage.setPeerIndex(off.Appid, off.Receiver, ui)
+	}
 }

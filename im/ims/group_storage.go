@@ -148,7 +148,7 @@ func (storage *GroupStorage) createGroupIndex() {
 	log.Info("create group message index begin:", time.Now().UnixNano())
 
 	for i := 0; i <= storage.block_NO; i++ {
-		storage.openWriteFile()
+		storage.openWriteFile(i)
 		file := storage.openReadFile(i)
 		if file == nil {
 			//历史消息被删除

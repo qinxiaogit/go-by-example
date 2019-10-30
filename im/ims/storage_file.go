@@ -126,7 +126,7 @@ func (storage *StorageFile)openWriteFile(block_NO int){
 	storage.dirty = false
 }
 // read file head
-func (storage *Storage)openReadFile(block_NO int)*os.File{
+func (storage *StorageFile)openReadFile(block_NO int)*os.File{
 	//open file readonly mode
 	path := fmt.Sprintf("%s/message_%d", storage.root, block_NO)
 	log.Info("open message block file path:",path)
